@@ -69,6 +69,11 @@
         <div class="hint">10 characters — 5 letters, 4 digits, 1 letter</div>
       </div>
 
+      <div class="form-group">
+        <label>Referral Branch <span>*</span></label>
+        <input type="text" id="referralCity" placeholder="Branch of the person you are referring" required>
+      </div>
+
       <button type="submit" id="submitBtn">Submit Referral</button>
       <div class="spinner" id="spinner">⏳ Validating and submitting...</div>
     </form>
@@ -94,6 +99,7 @@
       const referralName = document.getElementById('referralName').value.trim();
       const referralPhone = document.getElementById('referralPhone').value.replace(/[\s\-]/g, '').trim();
       const referralPan  = document.getElementById('referralPan').value.trim().toUpperCase();
+      const referralCity = document.getElementById('referralCity').value.trim();
 
       if (!employeeName || !employeeId || !referralName || !referralPhone || !referralPan) {
         showMessage('Please fill in all required fields.', 'error');
@@ -107,7 +113,7 @@
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ employeeName, employeeId, referralName, phone: referralPhone, pan: referralPan })
+          body: JSON.stringify({ employeeName, employeeId, referralName, phone: referralPhone, pan: referralPan, city: referralCity })
         });
 
         const result = await response.json();
