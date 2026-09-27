@@ -101,7 +101,7 @@
       const referralPan  = document.getElementById('referralPan').value.trim().toUpperCase();
       const referralCity = document.getElementById('referralCity').value.trim();
 
-      if (!employeeName || !employeeId || !referralName || !referralPhone || !referralPan) {
+      if (!employeeName || !employeeId || !referralName || !referralPhone || !referralPan || !referralCity) {
         showMessage('Please fill in all required fields.', 'error');
         return;
       }
