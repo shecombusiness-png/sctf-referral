@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCTF Referral – SheCommerz</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; padding: 20px; }
+    .container { max-width: 520px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .logo { font-size: 13px; font-weight: bold; color: #e53935; letter-spacing: 1px; margin-bottom: 6px; }
+    h1 { font-size: 20px; color: #1a237e; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
+    label span { color: #e53935; }
+    input { width: 100%; padding: 11px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; transition: border 0.2s; }
+    input:focus { outline: none; border-color: #1a237e; box-shadow: 0 0 0 2px rgba(26,35,126,0.1); }
+    .hint { font-size: 12px; color: #888; margin-top: 4px; }
+    .message { padding: 13px 16px; border-radius: 6px; font-size: 14px; margin-bottom: 18px; display: none; line-height: 1.5; }
+    .message.error { background: #fdecea; color: #c62828; border-left: 4px solid #e53935; display: block; }
+    .message.success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #43a047; display: block; }
+    button { width: 100%; padding: 13px; background: #1a237e; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 6px; }
+    button:hover:not(:disabled) { background: #283593; }
+    button:disabled { background: #9e9e9e; cursor: not-allowed; }
+    .spinner { text-align: center; font-size: 13px; color: #888; margin-top: 10px; display: none; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+    .footer { font-size: 11px; color: #aaa; text-align: center; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">SHECOMMERZ</div>
+    <h1>SCTF Referral Program</h1>
+    <p class="subtitle">
+      Fill in the details of the person you are referring. Each employee can refer a maximum of <strong>5 candidates</strong>.
+      A referral will not be accepted if the same Phone Number or PAN Number has already been registered.
+    </p>
+
+    <div id="message" class="message"></div>
+
+    <form id="referralForm">
+      <div class="form-group">
+        <label>Employee Name <span>*</span></label>
+        <input type="text" id="employeeName" placeholder="Your full name" required>
+      </div>
+
+      <div class="form-group">
+        <label>Employee ID <span>*</span></label>
+        <input type="text" id="employeeId" placeholder="Your Employee ID" required>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label>Referral Name <span>*</span></label>
+        <input type="text" id="referralName" placeholder="Full name of the person you are referring" required>
+      </div>
+
+      <div class="form-group">
+        <label>Referral Phone Number <span>*</span></label>
+        <input type="tel" id="referralPhone" placeholder="10-digit mobile number" required>
+        <div class="hint">Do not include +91 or spaces</div>
+      </div>
+
+      <div class="form-group">
+        <label>Referral PAN Number <span>*</span></label>
+        <input type="text" id="referralPan" placeholder="e.g. ABCDE1234F" maxlength="10" required>
+        <div class="hint">10 characters — 5 letters, 4 digits, 1 letter</div>
+      </div>
+
+      <button type="submit" id="submitBtn">Submit Referral</button>
+      <div class="spinner" id="spinner">⏳ Validating and submitting...</div>
+    </form>
+
+    <div class="footer">SheCommerz · SCTF Referral Program · All submissions are recorded</div>
+  </div>
+
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIsRYVxXOVmSK5_pYSKk2gaHq0pRii04qRoAhKlnJEy4v7kks1rTUX5rNh24BEcfw2/exec';
+
+    document.getElementById('referralForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const messageDiv = document.getElementById('message');
+      const submitBtn  = document.getElementById('submitBtn');
+      const spinner    = document.getElementById('spinner');
+
+      messageDiv.className = 'message';
+      messageDiv.textContent = '';
+
+      const employeeName = document.getElementById('employeeName').value.trim();
+      const employeeId   = document.getElementById('employeeId').value.trim().toUpperCase();
+      const referralName = document.getElementById('referralName').value.trim();
+      const referralPhone = document.getElementById('referralPhone').value.replace(/[\s\-]/g, '').trim();
+      const referralPan  = document.getElementById('referralPan').value.trim().toUpperCase();
+
+      if (!employeeName || !employeeId || !referralName || !referralPhone || !referralPan) {
+        showMessage('Please fill in all required fields.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      spinner.style.display = 'block';
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ employeeName, employeeId, referralName, phone: referralPhone, pan: referralPan })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showMessage('✅ ' + result.message, 'success');
+          document.getElementById('referralForm').reset();
+        } else {
+          showMessage('❌ ' + result.message, 'error');
+        }
+      } catch (err) {
+        showMessage('Connection error. Please check your internet and try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+      }
+    });
+
+    function showMessage(text, type) {
+      const div = document.getElementById('message');
+      div.className = 'message ' + type;
+      div.textContent = text;
+      div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>
